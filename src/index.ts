@@ -1,14 +1,62 @@
 type Item = {
   name: string;
+  label: string;
   tagName: string;
   type?: string;
-  label: string;
   placeholder?: string;
   values?: { label: string; value: number }[];
   options?: { text: string; value: number }[];
 };
 
-const items: Item[] = [
+type InputTagItem = Item & {
+  tagName: 'input';
+  type: string;
+};
+
+type UserWriteInputType = 'text' | 'email' | 'tel';
+type UserWriteInputItem<T extends UserWriteInputType> = InputTagItem & {
+  type: T;
+  placeholder: string;
+};
+type TextInputItem = UserWriteInputItem<'text'>;
+type EmailInputItem = UserWriteInputItem<'email'>;
+type TelInputItem = UserWriteInputItem<'tel'>;
+
+type UserSelectInputType = 'radio' | 'checkbox';
+type UserSelectInputItem<T extends UserSelectInputType> = InputTagItem & {
+  type: T;
+  values: { label: string; value: number }[];
+};
+type RadioInputItem = UserSelectInputItem<'radio'>;
+type CheckboxInputItem = UserSelectInputItem<'checkbox'>;
+
+type SelectTagItem = Item & {
+  tagName: 'select';
+  options: { text: string; value: number }[];
+};
+
+type TextareaTagItem = Item & {
+  tagName: 'textarea';
+  placeholder: string;
+};
+
+type InputTagItems =
+  | TextInputItem
+  | EmailInputItem
+  | TelInputItem
+  | RadioInputItem
+  | CheckboxInputItem;
+
+type FormItem =
+  | TextInputItem
+  | EmailInputItem
+  | TelInputItem
+  | RadioInputItem
+  | CheckboxInputItem
+  | SelectTagItem
+  | TextareaTagItem;
+
+const items: FormItem[] = [
   {
     name: 'name',
     label: 'お名前',
@@ -80,38 +128,92 @@ const items: Item[] = [
 // _____________________________________________________________________________
 //
 
-function createInputRow(item: Item) {
+/* Type Guard */
+// const isInputItem = (item: Item): item is InputTagItem =>
+//   item.tagName === 'input' && typeof item.type === 'string';
+
+//const isTextInputItem = (item: Input)
+
+const createInputTag = (item: InputTagItems) => {
+  switch (item.type) {
+    case 'text':
+    case 'email':
+    case 'tel':
+      return `<input
+                type=${item.type}
+                name=${item.name}
+                placeholder=${item.placeholder}
+              />`;
+    case 'radio':
+    case 'checkbox':
+      const name = item.name;
+      const inputType = item.type;
+      const inputTags = item.values.map((v) => {
+        const id = `${name}${v.value}`;
+        return `<input
+                  type=${inputType}
+                  name=${name}
+                  value=${v.value}
+                  id=${id}
+                />
+                <label for=${id}>
+                  ${v.label}
+                </label>`;
+      });
+      return inputTags.join('\n');
+    default:
+      return;
+  }
+};
+
+const createSelectTag = (item: SelectTagItem) => {
+  const optionStrings = item.options.map(
+    (opt) => `<option value=${opt.value}>${opt.text}</option>`
+  );
+  return `<select name=${item.name}>
+            ${optionStrings.join('\n')}
+          </select>`;
+};
+
+const createTextAreaTag = (item: TextareaTagItem) => {
+  return `<textarea name=${item.name} placeholder=${item.placeholder}></textarea>`;
+};
+
+function createInputRow(item: InputTagItems) {
+  //const inputTag =
   return `
     <tr>
       <th>
+        ${item.label}
       </th>
       <td>
-        <input />
+        ${createInputTag(item)}
       </td>
     </tr>
   `;
 }
 
-function createSelectRow(item: Item) {
+function createSelectRow(item: SelectTagItem) {
   return `
     <tr>
       <th>
+        ${item.label}
       </th>
       <td>
-        <select>
-        </select>
+        ${createSelectTag(item)}
       </td>
     </tr>
   `;
 }
 
-function createTextAreaRow(item: Item) {
+function createTextAreaRow(item: TextareaTagItem) {
   return `
     <tr>
       <th>
+        ${item.label}
       </th>
       <td>
-        <textarea></textarea>
+        ${createTextAreaTag(item)}
       </td>
     </tr>
   `;
