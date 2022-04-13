@@ -1,53 +1,48 @@
-type Item = {
+type BaseItem = {
   name: string;
   label: string;
-  tagName: string;
-  type?: string;
-  placeholder?: string;
-  values?: { label: string; value: number }[];
-  options?: { text: string; value: number }[];
-};
-
-type InputTagItem = Item & {
-  tagName: 'input';
-  type: string;
 };
 
 type UserWriteInputType = 'text' | 'email' | 'tel';
-type UserWriteInputItem<T extends UserWriteInputType> = InputTagItem & {
+type UserSelectInputType = 'radio' | 'checkbox';
+type BaseInputTagItem = BaseItem & {
+  tagName: 'input';
+  type: UserWriteInputType | UserSelectInputType;
+};
+
+type UserWriteInputItem<T extends UserWriteInputType> = BaseInputTagItem & {
   type: T;
   placeholder: string;
 };
-type TextInputItem = UserWriteInputItem<'text'>;
-type EmailInputItem = UserWriteInputItem<'email'>;
-type TelInputItem = UserWriteInputItem<'tel'>;
-
-type UserSelectInputType = 'radio' | 'checkbox';
-type UserSelectInputItem<T extends UserSelectInputType> = InputTagItem & {
+type UserSelectInputItem<T extends UserSelectInputType> = BaseInputTagItem & {
   type: T;
   values: { label: string; value: number }[];
 };
+
+type TextInputItem = UserWriteInputItem<'text'>;
+type EmailInputItem = UserWriteInputItem<'email'>;
+type TelInputItem = UserWriteInputItem<'tel'>;
 type RadioInputItem = UserSelectInputItem<'radio'>;
 type CheckboxInputItem = UserSelectInputItem<'checkbox'>;
 
-type SelectTagItem = Item & {
-  tagName: 'select';
-  options: { text: string; value: number }[];
-};
-
-type TextareaTagItem = Item & {
-  tagName: 'textarea';
-  placeholder: string;
-};
-
-type InputTagItems =
+type InputTagItem =
   | TextInputItem
   | EmailInputItem
   | TelInputItem
   | RadioInputItem
   | CheckboxInputItem;
 
-type FormItem = InputTagItems | SelectTagItem | TextareaTagItem;
+type SelectTagItem = BaseItem & {
+  tagName: 'select';
+  options: { text: string; value: number }[];
+};
+
+type TextareaTagItem = BaseItem & {
+  tagName: 'textarea';
+  placeholder: string;
+};
+
+type FormItem = InputTagItem | SelectTagItem | TextareaTagItem;
 
 const items: FormItem[] = [
   {
@@ -121,13 +116,7 @@ const items: FormItem[] = [
 // _____________________________________________________________________________
 //
 
-/* Type Guard */
-// const isInputItem = (item: Item): item is InputTagItem =>
-//   item.tagName === 'input' && typeof item.type === 'string';
-
-//const isTextInputItem = (item: Input)
-
-const createInputTag = (item: InputTagItems) => {
+const createInputTag = (item: InputTagItem) => {
   switch (item.type) {
     case 'text':
     case 'email':
@@ -140,11 +129,11 @@ const createInputTag = (item: InputTagItems) => {
     case 'radio':
     case 'checkbox':
       const name = item.name;
-      const inputType = item.type;
+      const type = item.type;
       const inputTags = item.values.map((v) => {
         const id = `${name}${v.value}`;
         return `<input
-                  type=${inputType}
+                  type=${type}
                   name=${name}
                   value=${v.value}
                   id=${id}
@@ -172,8 +161,7 @@ const createTextAreaTag = (item: TextareaTagItem) => {
   return `<textarea name=${item.name} placeholder=${item.placeholder}></textarea>`;
 };
 
-function createInputRow(item: InputTagItems) {
-  //const inputTag =
+function createInputRow(item: InputTagItem) {
   return `
     <tr>
       <th>
