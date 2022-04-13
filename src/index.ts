@@ -47,14 +47,7 @@ type InputTagItems =
   | RadioInputItem
   | CheckboxInputItem;
 
-type FormItem =
-  | TextInputItem
-  | EmailInputItem
-  | TelInputItem
-  | RadioInputItem
-  | CheckboxInputItem
-  | SelectTagItem
-  | TextareaTagItem;
+type FormItem = InputTagItems | SelectTagItem | TextareaTagItem;
 
 const items: FormItem[] = [
   {
